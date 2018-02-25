@@ -2,38 +2,35 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 
-# create data
+# 创建数据
 x_data = np.random.rand(100).astype(np.float32)
 y_data = x_data * 0.1 + 0.3
-
-# plot data
-plt.scatter(x_data, y_data)
+plt.scatter(x_data, x_data)
 plt.show()
-### create tensorflow structure start ###
+# 创建TensorFlow结构
 Weights = tf.Variable(tf.random_uniform([1], -1.0, 1.0))
 biases = tf.Variable(tf.zeros([1]))
+y = x_data * Weights + biases
 
-y = Weights * x_data + biases
-
-loss = tf.reduce_mean(tf.square(y - y_data))
+# 创建模型
+loss = tf.reduce_mean(tf.square(y_data - y))
 optimizer = tf.train.GradientDescentOptimizer(0.5)
 train = optimizer.minimize(loss)
 
-sess = tf.Session()
+# 初始化参数
 init = tf.global_variables_initializer()
+sess = tf.Session()
 sess.run(init)
-
-plt.ion()  # something about plotting
-
+plt.ion()
+# 训练
 for step in range(201):
-    _, w, b = sess.run([train, Weights, biases])
-    if step % 10 == 0:
-        y = x_data * w + b
-        print(step, w, b)
+    _, W, b = sess.run([train, Weights, biases])
+    if step % 20 == 0:
+        y = x_data * W + b
+        print(step, W, b)
         plt.cla()
         plt.scatter(x_data, y_data)
         plt.plot(x_data, y, 'r-', lw=5)
         plt.pause(0.5)
-
 plt.ioff()
 plt.show()
