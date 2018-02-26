@@ -1,17 +1,39 @@
 # MNIST分类问题,
 from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
+import matplotlib.pyplot as plt
+import numpy as np
 
 mnist = input_data.read_data_sets("../MNIST_data/", one_hot=True)
+#显示图
+plt.subplot(221)
+plt.imshow(mnist.train.images[0].reshape((28, 28)), cmap='gray')
+plt.title('%i' % np.argmax(mnist.train.labels[2]))
+plt.legend(loc='best')
+
+plt.subplot(222)
+plt.imshow(mnist.train.images[1].reshape((28, 28)), cmap='gray')
+plt.title('%i' % np.argmax(mnist.train.labels[1]))
+plt.legend(loc='best')
+
+plt.subplot(223)
+plt.imshow(mnist.train.images[2].reshape((28, 28)), cmap='gray')
+plt.title('%i' % np.argmax(mnist.train.labels[2]))
+plt.legend(loc='best')
+
+plt.subplot(224)
+plt.imshow(mnist.train.images[3].reshape((28, 28)), cmap='gray')
+plt.title('%i' % np.argmax(mnist.train.labels[3]))
+plt.legend(loc='best')
+
+plt.show()
+
 # 定义softmax回归模型
 x = tf.placeholder(tf.float32, [None, 784])
 W = tf.Variable(tf.zeros([784, 10]))
 b = tf.Variable(tf.zeros(10))
 y = tf.matmul(x, W) + b
-#增加隐藏层
-# neural network layers
-l1 = tf.layers.dense(x, 10, tf.nn.relu)          # hidden layer
-output = tf.layers.dense(l1, 1)
+
 # 损失函数
 y_ = tf.placeholder(tf.float32, [None, 10])
 # 定义交叉熵
