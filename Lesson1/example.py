@@ -15,6 +15,7 @@ y = x_data * Weights + biases
 # 创建模型
 loss = tf.reduce_mean(tf.square(y_data - y))
 optimizer = tf.train.GradientDescentOptimizer(0.5)
+#optimizer=tf.train.AdamOptimizer(0.5)
 train = optimizer.minimize(loss)
 
 # 初始化参数
