@@ -1,54 +1,68 @@
-# MNIST分类问题,
-from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
-mnist = input_data.read_data_sets("../MNIST_data/", one_hot=True)
-#显示图
-plt.subplot(221)
-plt.imshow(mnist.train.images[0].reshape((28, 28)), cmap='gray')
-plt.title('%i' % np.argmax(mnist.train.labels[2]))
-plt.legend(loc='best')
+# 固定随机种子
+tf.set_random_seed(1)
+np.random.seed(1)
 
-plt.subplot(222)
-plt.imshow(mnist.train.images[1].reshape((28, 28)), cmap='gray')
-plt.title('%i' % np.argmax(mnist.train.labels[1]))
-plt.legend(loc='best')
+# 创建数据
+x_data = np.linspace(-1, 1, 30)[:, np.newaxis]
+y_data = np.power(x_data, 2) + np.random.normal(0, 0.2, size=x_data.shape)
 
-plt.subplot(223)
-plt.imshow(mnist.train.images[2].reshape((28, 28)), cmap='gray')
-plt.title('%i' % np.argmax(mnist.train.labels[2]))
-plt.legend(loc='best')
+# test data
+x_test = np.linspace(-1, 1, 30)[:, np.newaxis]
+y_test = np.power(x_test, 2) + np.random.normal(0, 0.2, size=x_test.shape)
 
-plt.subplot(224)
-plt.imshow(mnist.train.images[3].reshape((28, 28)), cmap='gray')
-plt.title('%i' % np.argmax(mnist.train.labels[3]))
-plt.legend(loc='best')
-
+# show data
+plt.scatter(x_data, y_data, c='magenta', s=50, alpha=0.5, label='train')
+plt.scatter(x_test, y_test, c='cyan', s=50, alpha=0.5, label='test')
+plt.legend(loc='upper left')
 plt.show()
 
-# 定义softmax回归模型
-x = tf.placeholder(tf.float32, [None, 784])
-W = tf.Variable(tf.zeros([784, 10]))
-b = tf.Variable(tf.zeros(10))
-y = tf.matmul(x, W) + b
+# tf placeholders
+tf_x = tf.placeholder(tf.float32, [None, 1])
+tf_y = tf.placeholder(tf.float32, [None, 1])
+tf_is_training = tf.placeholder(tf.bool, None)  # to control dropout when training and testing
 
-# 损失函数
-y_ = tf.placeholder(tf.float32, [None, 10])
-# 定义交叉熵
-cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=y, labels=y_))
-# 采用SGD优化器
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
-# 定义会话
-sess=tf.Session()
+# overfitting net
+o1 = tf.layers.dense(tf_x, 100, tf.nn.relu)
+o2 = tf.layers.dense(o1, 100, tf.nn.relu)
+o_out = tf.layers.dense(o2, 1)
+o_loss = tf.losses.mean_squared_error(tf_y, o_out)
+o_train = tf.train.AdamOptimizer(0.01).minimize(o_loss)
+
+# dropout net
+d1 = tf.layers.dense(tf_x, 100, tf.nn.relu)
+d1 = tf.layers.dropout(d1, rate=0.5, training=tf_is_training)  # drop out 50% of inputs
+d2 = tf.layers.dense(d1, 100, tf.nn.relu)
+d2 = tf.layers.dropout(d2, rate=0.5, training=tf_is_training)  # drop out 50% of inputs
+d_out = tf.layers.dense(d2, 1)
+d_loss = tf.losses.mean_squared_error(tf_y, d_out)
+d_train = tf.train.AdamOptimizer(0.01).minimize(d_loss)
+
+sess = tf.Session()
 sess.run(tf.global_variables_initializer())
-# 训练1000次,每次随机抓取100个
-for _ in range(1000):
-    batch_xs, batch_ys = mnist.train.next_batch(100)
-    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-# 评估训练好的模型
-correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-# 计算模型准确率
-print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+
+plt.ion()  # something about plotting
+
+for t in range(500):
+    sess.run([o_train, d_train], {tf_x: x_data, tf_y: y_data, tf_is_training: True})  # train, set is_training=True
+    if t % 10 == 0:
+        # plotting
+        plt.cla()
+        o_loss_, d_loss_, o_out_, d_out_ = sess.run(
+            [o_loss, d_loss, o_out, d_out], {tf_x: x_test, tf_y: y_test, tf_is_training: False}
+            # test, set is_training=False
+        )
+        plt.scatter(x_data, y_data, c='magenta', s=50, alpha=0.3, label='train')
+        plt.scatter(x_test, y_test, c='cyan', s=50, alpha=0.3, label='test')
+        plt.plot(x_test, o_out_, 'r-', lw=3, label='overfitting');
+        plt.plot(x_test, d_out_, 'b-', lw=3, label='dropout(50%)')
+        plt.text(0, 0.25, 'overfitting loss=%.4f' % o_loss_, fontdict={'size': 16, 'color': 'red'})
+        plt.text(0, 0.5, 'dropout loss=%.4f' % d_loss_, fontdict={'size': 16, 'color': 'blue'})
+        plt.legend(loc='upper left');
+        plt.pause(0.1)
+
+plt.ioff()
+plt.show()
