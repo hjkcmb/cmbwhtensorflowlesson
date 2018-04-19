@@ -50,8 +50,6 @@ sess.run(tf.global_variables_initializer())
 plt.ion()  # something about plotting
 
 writer = tf.summary.FileWriter('./log', sess.graph)  # write to file
-train_writer = tf.summary.FileWriter("logs/train", sess.graph)
-test_writer = tf.summary.FileWriter("logs/test", sess.graph)
 merge_op = tf.summary.merge_all()  # operation to merge all summary
 
 # 训练
