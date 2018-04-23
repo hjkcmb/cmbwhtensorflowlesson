@@ -34,7 +34,7 @@ W = tf.Variable(tf.zeros([784, 10]))
 b = tf.Variable(tf.zeros(10))
 y = tf.matmul(x, W) + b
 
-# 损失函数
+
 y_ = tf.placeholder(tf.float32, [None, 10])
 # 定义交叉熵
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=y, labels=y_))
