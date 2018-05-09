@@ -15,7 +15,7 @@ tf_is_training = tf.placeholder(tf.bool, None)
 # 输入shape【28，28，1】
 image = tf.reshape(x, [-1, 28, 28, 1])
 
-# ALEXNET算法
+# ALEXNET算法实现
 
 # 第一个卷积层
 # 输入的图片大小为:28*28*1
